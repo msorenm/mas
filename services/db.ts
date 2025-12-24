@@ -1,7 +1,8 @@
 
 import { MaterialEntry, Material, Driver, Supplier, Project, User, Announcement, SystemSettings, UserRole } from '../types';
 
-const API_URL = 'http://localhost:3001/api';
+// Use relative path so Vite proxy can forward it to http://localhost:3001
+const API_URL = '/api';
 
 // --- Services ---
 
@@ -28,15 +29,17 @@ export const db = {
   },
 
   async addEntry(entry: Omit<MaterialEntry, 'id' | 'timestamp'>) {
-    await fetch(`${API_URL}/entries`, {
+    const res = await fetch(`${API_URL}/entries`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(entry),
     });
+    if (!res.ok) throw new Error('Failed to add entry');
   },
 
   async deleteEntry(id: string) {
-    await fetch(`${API_URL}/entries/${id}`, { method: 'DELETE' });
+    const res = await fetch(`${API_URL}/entries/${id}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Failed to delete entry');
   },
 
   // Metadata (Materials, Drivers, etc.)
@@ -71,7 +74,8 @@ export const db = {
         };
     } catch (e) {
         console.error("Connection Error:", e);
-        return { materials: [], drivers: [], suppliers: [], projects: [], users: [], announcements: [], settings: null };
+        // Throwing error so the UI knows something went wrong instead of showing empty state
+        throw e; 
     }
   },
 
